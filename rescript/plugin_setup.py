@@ -23,7 +23,7 @@ from .degap import degap_seqs
 from .parse_silva_taxonomy import (parse_silva_taxonomy, ALLOWED_RANKS,
                                    DEFAULT_RANKS)
 from .edit_taxonomy import edit_taxonomy
-from .get_data import get_silva_data
+from .get_data import get_silva_data, get_gtdb_data
 from .cross_validate import (evaluate_cross_validate,
                              evaluate_classifications,
                              evaluate_fit_classifier)
@@ -780,6 +780,65 @@ plugin.methods.register_function(
     ),
     citations=[citations['Pruesse2007'],
                citations['Quast2013']]
+)
+
+
+plugin.pipelines.register_function(
+    function=get_gtdb_data,
+    inputs={},
+    parameters={
+        'version': Str % Choices(
+            ['80', '83', '86', '89', '95', '202', '207', 'latest']
+        ),
+        # 'domain': target_map,
+        # 'include_species_labels': Bool,
+        # 'rank_propagation': Bool,
+        # 'ranks': List[Str % Choices(ALLOWED_RANKS)],
+        # 'download_sequences': Bool
+    },
+    outputs=[('gtdb_sequences', FeatureData[RNASequence]),
+             ('gtdb_taxonomy', FeatureData[Taxonomy])],
+    input_descriptions={},
+    parameter_descriptions={
+        'version': 'GTDB database version to download.',
+        # 'target': 'Reference sequence target to download. SSURef = redundant '
+        #           'small subunit reference. LSURef = redundant large subunit '
+        #           'reference. SSURef_NR99 = non-redundant (clustered at 99% '
+        #           'similarity) small subunit reference.',
+        # 'include_species_labels': INCLUDE_SPECIES_LABELS_DESCRIPTION,
+        # 'rank_propagation': RANK_PROPAGATE_DESCRIPTION,
+        # 'ranks': RANK_DESCRIPTION,
+        # 'download_sequences': 'Toggle whether or not to download and import '
+        #                       'the SILVA reference sequences associated with '
+        #                       'the release. Skipping the sequences is useful '
+        #                       'if you only want to download and parse the '
+        #                       'taxonomy, e.g., a local copy of the sequences '
+        #                       'already exists or for testing purposes. NOTE: '
+        #                       'if this option is used, a `silva_sequences` '
+        #                       'output is still created, but contains no '
+        #                       'data.'
+    },
+    output_descriptions={
+        'gtdb_sequences': 'GTDB reference sequences.',
+        'gtdb_taxonomy': 'GTDB reference taxonomy.'
+    },
+    name='Download and import the GTDB database.',
+    description=(
+        'Download and import the GTDB database files, given a version number. '
+        'Downloads data directly from GTDB, imports the files, and outputs '
+        'ready-to-use sequence and taxonomy artifacts. '
+        'REQUIRES STABLE INTERNET CONNECTION. '
+        'NOTE: THIS ACTION ACQUIRES DATA FROM THE GTDB DATABASE. '
+        'SEE https://gtdb.ecogenomic.org/downloads FOR MORE INFORMATION and '
+        'be aware that earlier versions may be released under a different '
+        'license.'
+    ),
+    citations=[
+        citations['parks2022gtdb'],
+        citations['rinke2021standardized'],
+        citations['parks2020complete'],
+        citations['parks2018standardized'],
+    ]
 )
 
 

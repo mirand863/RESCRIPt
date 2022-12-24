@@ -173,3 +173,32 @@ def _gzip_decompress(input_fp, output_fp):
     with gzip.open(input_fp, 'rt') as temp_in:
         with open(output_fp, 'w') as temp_out:
             shutil.copyfileobj(temp_in, temp_out)
+
+
+def get_gtdb_data(
+        ctx,
+        version='latest',
+        # target='SSURef_NR99',
+        # include_species_labels=False,
+        # rank_propagation=True,
+        # ranks=None,
+        # download_sequences=True
+):
+    # download data from GTDB
+    print('Downloading raw files may take some time... get some coffee.')
+    # queries = _assemble_silva_data_urls(version, target, download_sequences)
+    # results = _retrieve_data_from_silva(queries)
+    # # parse taxonomy
+    # parse_taxonomy = ctx.get_action('rescript', 'parse_silva_taxonomy')
+    # taxonomy, = parse_taxonomy(
+    #     taxonomy_tree=results['taxonomy tree'],
+    #     taxonomy_map=results['taxonomy map'],
+    #     taxonomy_ranks=results['taxonomy ranks'],
+    #     include_species_labels=include_species_labels,
+    #     ranks=ranks,
+    #     rank_propagation=rank_propagation)
+    # # if skipping sequences, need to output an empty sequence file.
+    # if not download_sequences:
+    #     results['sequences'] = qiime2.Artifact.import_data(
+    #         'FeatureData[RNASequence]', RNAFASTAFormat())
+    # return results['sequences'], taxonomy
