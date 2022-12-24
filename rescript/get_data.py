@@ -178,7 +178,7 @@ def _gzip_decompress(input_fp, output_fp):
 def get_gtdb_data(
         ctx,
         version='latest',
-        # target='SSURef_NR99',
+        target='all',
         # include_species_labels=False,
         # rank_propagation=True,
         # ranks=None,
