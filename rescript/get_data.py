@@ -179,8 +179,9 @@ def get_gtdb_data(
         ctx,
         version='latest',
         target='all',
-        # include_species_labels=False,
-        # rank_propagation=True,
+        domain='bac',
+        include_species_labels=False,
+        rank_propagation=True,
         # ranks=None,
         # download_sequences=True
 ):

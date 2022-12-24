@@ -791,9 +791,9 @@ plugin.pipelines.register_function(
             ['80', '83', '86', '89', '95', '202', '207', 'latest']
         ),
         'target': Str % Choices(['repr', 'all']),
-        # 'domain': target_map,
-        # 'include_species_labels': Bool,
-        # 'rank_propagation': Bool,
+        'domain': Str % Choices(['bac', 'ar']),
+        'include_species_labels': Bool,
+        'rank_propagation': Bool,
         # 'ranks': List[Str % Choices(ALLOWED_RANKS)],
         # 'download_sequences': Bool
     },
@@ -806,8 +806,9 @@ plugin.pipelines.register_function(
                   'repr = each species is defined by a single representative genome. '
                   'See https://gtdb.ecogenomic.org/methods#updating-gtdb-species-representatives '
                   'for more information. all = all genomes are included. ',
-        # 'include_species_labels': INCLUDE_SPECIES_LABELS_DESCRIPTION,
-        # 'rank_propagation': RANK_PROPAGATE_DESCRIPTION,
+        'domain': 'Domain to download. bac = bacteria. ar = archaea.',
+        'include_species_labels': INCLUDE_SPECIES_LABELS_DESCRIPTION,
+        'rank_propagation': RANK_PROPAGATE_DESCRIPTION,
         # 'ranks': RANK_DESCRIPTION,
         # 'download_sequences': 'Toggle whether or not to download and import '
         #                       'the SILVA reference sequences associated with '
