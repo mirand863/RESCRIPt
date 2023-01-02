@@ -17,6 +17,7 @@ import qiime2
 from urllib.request import urlretrieve
 from urllib.error import HTTPError
 from q2_types.feature_data import RNAFASTAFormat
+from collections import defaultdict
 
 
 def get_silva_data(ctx,
@@ -221,24 +222,17 @@ def _assemble_gtdb_data_urls(version, domain, download_sequences=True):
     base_url = f"https://data.gtdb.ecogenomic.org/releases/release{version}/{version}.0"
 
     # Maps to handle the different file names for different versions
-    domain_map = {
-        'bac95': 'bac120',
-        'ar95': 'ar122',
-        'bac202': 'bac120',
-        'ar202': 'ar122',
-        'bac207': 'bac120',
-        'ar207': 'ar53',
-    }
-    tree_map = {
-        '95': '.gz',
-        '202': '.tar.gz',
-        '207': '.tar.gz',
-    }
+    domain_map = defaultdict(lambda: '120')
+    domain_map[('ar', '95')] = '122'
+    domain_map[('ar', '202')] = '122'
+    domain_map[('ar', '207')] = '53'
+    tree_map = defaultdict(lambda: '.tar.gz')
+    tree_map['95'] = '.gz'
 
     # Construct file URLs
-    base_url_seqs = f"{base_url}/genomic_files_reps/{domain_map[domain + version]}_ssu_reps_r{version}.tar.gz"
-    base_url_taxmap = f"{base_url}/{domain_map[domain + version]}_taxonomy_r{version}.tsv.gz"
-    tree_url = f"{base_url}/{domain_map[domain + version]}_r{version}.tree{tree_map[version]}"
+    base_url_seqs = f"{base_url}/genomic_files_reps/{domain}{domain_map[(domain, version)]}_ssu_reps_r{version}.tar.gz"
+    base_url_taxmap = f"{base_url}/{domain}{domain_map[(domain, version)]}_taxonomy_r{version}.tsv.gz"
+    tree_url = f"{base_url}/{domain}{domain_map[(domain, version)]}_r{version}.tree{tree_map[version]}"
 
     # Download and validate GTDB files
     queries = [('sequences', base_url_seqs, 'FeatureData[RNASequence]'),
