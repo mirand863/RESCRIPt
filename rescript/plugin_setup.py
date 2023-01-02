@@ -784,6 +784,7 @@ plugin.methods.register_function(
 
 # TODO: add support for older versions and latest version
 _GTDB_VERSIONS = ['95', '202', '207']
+# TODO: add support for all instead of only bacteria or archaea
 _GTDB_DOMAINS = ['bac', 'ar']
 
 
