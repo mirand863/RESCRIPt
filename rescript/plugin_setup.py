@@ -782,43 +782,40 @@ plugin.methods.register_function(
                citations['Quast2013']]
 )
 
+# TODO: add support for older versions and latest version
+_GTDB_VERSIONS = ['95', '202', '207']
+_GTDB_DOMAINS = ['bac', 'ar']
+
 
 plugin.pipelines.register_function(
     function=get_gtdb_data,
     inputs={},
     parameters={
-        'version': Str % Choices(
-            ['80', '83', '86', '89', '95', '202', '207', 'latest']
-        ),
-        'target': Str % Choices(['repr', 'all']),
-        'domain': Str % Choices(['bac', 'ar']),
+        'version': Str % Choices(_GTDB_VERSIONS),
+        'domain': Str % Choices(_GTDB_DOMAINS),
         'include_species_labels': Bool,
         'rank_propagation': Bool,
-        # 'ranks': List[Str % Choices(ALLOWED_RANKS)],
-        # 'download_sequences': Bool
+        'ranks': List[Str % Choices(ALLOWED_RANKS)],
+        'download_sequences': Bool
     },
     outputs=[('gtdb_sequences', FeatureData[RNASequence]),
              ('gtdb_taxonomy', FeatureData[Taxonomy])],
     input_descriptions={},
     parameter_descriptions={
         'version': 'GTDB database version to download.',
-        'target': 'Reference sequence target to download. '
-                  'repr = each species is defined by a single representative genome. '
-                  'See https://gtdb.ecogenomic.org/methods#updating-gtdb-species-representatives '
-                  'for more information. all = all genomes are included. ',
         'domain': 'Domain to download. bac = bacteria. ar = archaea.',
         'include_species_labels': INCLUDE_SPECIES_LABELS_DESCRIPTION,
         'rank_propagation': RANK_PROPAGATE_DESCRIPTION,
-        # 'ranks': RANK_DESCRIPTION,
-        # 'download_sequences': 'Toggle whether or not to download and import '
-        #                       'the SILVA reference sequences associated with '
-        #                       'the release. Skipping the sequences is useful '
-        #                       'if you only want to download and parse the '
-        #                       'taxonomy, e.g., a local copy of the sequences '
-        #                       'already exists or for testing purposes. NOTE: '
-        #                       'if this option is used, a `silva_sequences` '
-        #                       'output is still created, but contains no '
-        #                       'data.'
+        'ranks': RANK_DESCRIPTION,
+        'download_sequences': 'Toggle whether or not to download and import '
+                              'the GTDB reference sequences associated with '
+                              'the release. Skipping the sequences is useful '
+                              'if you only want to download and parse the '
+                              'taxonomy, e.g., a local copy of the sequences '
+                              'already exists or for testing purposes. NOTE: '
+                              'if this option is used, a `silva_sequences` '
+                              'output is still created, but contains no '
+                              'data.'
     },
     output_descriptions={
         'gtdb_sequences': 'GTDB reference sequences.',

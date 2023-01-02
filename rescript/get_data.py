@@ -177,17 +177,16 @@ def _gzip_decompress(input_fp, output_fp):
 
 def get_gtdb_data(
         ctx,
-        version='latest',
-        target='all',
+        version='207',
         domain='bac',
         include_species_labels=False,
         rank_propagation=True,
-        # ranks=None,
-        # download_sequences=True
+        ranks=None,
+        download_sequences=True
 ):
     # download data from GTDB
     print('Downloading raw files may take some time... get some coffee.')
-    # queries = _assemble_silva_data_urls(version, target, download_sequences)
+    queries = _assemble_gtdb_data_urls(version, target, download_sequences)
     # results = _retrieve_data_from_silva(queries)
     # # parse taxonomy
     # parse_taxonomy = ctx.get_action('rescript', 'parse_silva_taxonomy')
@@ -203,3 +202,51 @@ def get_gtdb_data(
     #     results['sequences'] = qiime2.Artifact.import_data(
     #         'FeatureData[RNASequence]', RNAFASTAFormat())
     # return results['sequences'], taxonomy
+
+
+def _assemble_gtdb_data_urls(version, domain, download_sequences=True):
+    """
+    Generate GTDB URLs, given a database version, target and domain.
+
+    Parameters
+    ----------
+    version : str
+        The version of the database to download, e.g., 202, 207, latest.
+    domain : str
+        The domain of the database to download, i.e., bac (bacteria) or ar (archea).
+    download_sequences : bool
+        Whether to download sequences or not.
+    """
+    # Compile URLs
+    base_url = f"https://data.gtdb.ecogenomic.org/releases/release{version}/{version}.0"
+
+    # Maps to handle the different file names for different versions
+    domain_map = {
+        'bac95': 'bac120',
+        'ar95': 'ar122',
+        'bac202': 'bac120',
+        'ar202': 'ar122',
+        'bac207': 'bac120',
+        'ar207': 'ar53',
+    }
+    tree_map = {
+        '95': '.gz',
+        '202': '.tar.gz',
+        '207': '.tar.gz',
+    }
+
+    # Construct file URLs
+    base_url_seqs = f"{base_url}/genomic_files_reps/{domain_map[domain + version]}_ssu_reps_r{version}.tar.gz"
+    base_url_taxmap = f"{base_url}/{domain_map[domain + version]}_taxonomy_r{version}.tsv.gz"
+    tree_url = f"{base_url}/{domain_map[domain + version]}_r{version}.tree{tree_map[version]}"
+
+    # Download and validate GTDB files
+    queries = [('sequences', base_url_seqs, 'FeatureData[RNASequence]'),
+               ('taxonomy map', base_url_taxmap, 'FeatureData[SILVATaxidMap]'),
+               ('taxonomy tree', tree_url, 'Phylogeny[Rooted]')]
+
+    # Optionally skip downloading sequences
+    if not download_sequences:
+        queries = queries[1:]
+
+    return queries
