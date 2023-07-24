@@ -5,9 +5,14 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
+import gzip
+import os
+from typing import List, Dict, Any, Union
 
-from q2_types.feature_data import DNAFASTAFormat, DNAIterator
-from typing import List, Dict, Any
+from q2_types.feature_data import DNAFASTAFormat
+from q2_types.multiplexed_sequences import (
+    MultiplexedSingleEndBarcodeInSequenceDirFmt, FASTQIterator
+)
 
 from ._utilities import run_command
 
@@ -31,8 +36,15 @@ def _add_optional_parameters(cmd: List[str], **kwargs: Dict[str, Any]) -> None:
             cmd.append(f"{value}")
 
 
+def _compress(file):
+    with open(file, "rb") as f_in:
+        with gzip.open(file + ".gz", 'wb') as f_out:
+            f_out.writelines(f_in)
+            os.remove(file)
+
+
 def orient_seqs(
-    sequences: DNAFASTAFormat,
+    sequences: Union[DNAFASTAFormat, MultiplexedSingleEndBarcodeInSequenceDirFmt],
     reference_sequences: DNAFASTAFormat = None,
     threads: int = 1,
     dbmask: str = None,
@@ -43,8 +55,8 @@ def orient_seqs(
     relabel_sha1: bool = None,
     sizein: bool = None,
     sizeout: bool = None,
-) -> (DNAFASTAFormat, DNAFASTAFormat):
-    oriented, notmatched = DNAFASTAFormat(), DNAFASTAFormat()
+) -> (MultiplexedSingleEndBarcodeInSequenceDirFmt, MultiplexedSingleEndBarcodeInSequenceDirFmt):
+    oriented, notmatched = MultiplexedSingleEndBarcodeInSequenceDirFmt(), MultiplexedSingleEndBarcodeInSequenceDirFmt()
     if reference_sequences is not None:
         # use vsearch to orient seqs against reference database
         # note: qmask is disabled as DNAFASTAFormat requires all output
@@ -53,9 +65,13 @@ def orient_seqs(
         # through with skbio?
         cmd = [
             'vsearch',
-            '--orient', str(sequences),
-            '--fastaout', str(oriented),
-            '--notmatched', str(notmatched),
+            '--orient', str(sequences) + "/forward.fastq.gz",
+            # '--orient', "/home/fabio/Desktop/RESCRIPt/rescript/tests/data/mixed-orientations.fastq.gz",
+            '--fastqout', str(oriented) + "/forward.fastq",
+            # '--fastqout', "/home/fabio/Desktop/RESCRIPt/oriented.fastq",
+            # TODO: distinguish between fasta or fastq output
+            '--notmatched', str(notmatched) + "/forward.fastq",
+            # '--notmatched', "/home/fabio/Desktop/RESCRIPt/notmatched.fastq",
             '--db', str(reference_sequences),
             '--qmask', 'none',
             '--threads', str(threads),
@@ -72,13 +88,15 @@ def orient_seqs(
             sizein=sizein,
             sizeout=sizeout,
         )
-
+        print(cmd)  # TODO: remove this print
         run_command(cmd)
+        _compress(str(oriented) + "/forward.fastq")
+        _compress(str(notmatched) + "/forward.fastq")
 
     else:
-        oriented = DNAFASTAFormat()
+        oriented = MultiplexedSingleEndBarcodeInSequenceDirFmt()
         with oriented.open() as out_fasta:
-            for seq in sequences.view(DNAIterator):
+            for seq in sequences.view(FASTQIterator):
                 seq.reverse_complement().write(out_fasta)
 
     return oriented, notmatched

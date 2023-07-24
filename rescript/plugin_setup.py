@@ -8,47 +8,50 @@
 
 import importlib
 
+from q2_feature_classifier._taxonomic_classifier import TaxonomicClassifier
+from q2_feature_classifier.classifier import (_parameter_descriptions,
+                                              _classify_parameters)
+from q2_types.feature_data import (FeatureData, Taxonomy, Sequence,
+                                   AlignedSequence, RNASequence,
+                                   AlignedRNASequence, ProteinSequence, DNAFASTAFormat)
+from q2_types.multiplexed_sequences import (
+    MultiplexedSingleEndBarcodeInSequence, MultiplexedSingleEndBarcodeInSequenceDirFmt
+)
+from q2_types.tree import Phylogeny, Rooted
 from q2_types_genomics.genome_data import GenomeData, Loci, Proteins
 from qiime2.core.type import TypeMatch
 from qiime2.plugin import (Str, Plugin, Choices, List, Citations, Range, Int,
                            Float, Visualization, Bool, TypeMap, Metadata,
                            MetadataColumn, Categorical)
 
-from .subsample import subsample_fasta
-from .trim_alignment import trim_alignment
-from .merge import merge_taxa
-from .dereplicate import dereplicate
-from .evaluate import evaluate_taxonomy, evaluate_seqs
-from .screenseq import cull_seqs
-from .degap import degap_seqs
-from .parse_silva_taxonomy import (parse_silva_taxonomy, ALLOWED_RANKS,
-                                   DEFAULT_RANKS)
-from .edit_taxonomy import edit_taxonomy
-from .get_data import get_silva_data
-from .cross_validate import (evaluate_cross_validate,
-                             evaluate_classifications,
-                             evaluate_fit_classifier)
-from .filter_length import (filter_seqs_length_by_taxon, filter_seqs_length,
-                            filter_taxa)
-from .orient import orient_seqs
-from .extract_seq_segments import extract_seq_segments
-from .ncbi_datasets import get_ncbi_genomes
-from q2_types.feature_data import (FeatureData, Taxonomy, Sequence,
-                                   AlignedSequence, RNASequence,
-                                   AlignedRNASequence, ProteinSequence)
-from q2_types.tree import Phylogeny, Rooted
-from q2_feature_classifier.classifier import (_parameter_descriptions,
-                                              _classify_parameters)
-from q2_feature_classifier._taxonomic_classifier import TaxonomicClassifier
 import rescript
+from rescript.ncbi import (
+    get_ncbi_data, _default_ranks, _allowed_ranks, get_ncbi_data_protein)
 from rescript.types._format import (
     SILVATaxonomyFormat, SILVATaxonomyDirectoryFormat, SILVATaxidMapFormat,
     SILVATaxidMapDirectoryFormat)
 from rescript.types._type import SILVATaxonomy, SILVATaxidMap
 from rescript.types.methods import reverse_transcribe
-from rescript.ncbi import (
-    get_ncbi_data, _default_ranks, _allowed_ranks, get_ncbi_data_protein)
+from .cross_validate import (evaluate_cross_validate,
+                             evaluate_classifications,
+                             evaluate_fit_classifier)
+from .degap import degap_seqs
+from .dereplicate import dereplicate
+from .edit_taxonomy import edit_taxonomy
+from .evaluate import evaluate_taxonomy, evaluate_seqs
+from .extract_seq_segments import extract_seq_segments
+from .filter_length import (filter_seqs_length_by_taxon, filter_seqs_length,
+                            filter_taxa)
+from .get_data import get_silva_data
 from .get_gtdb import get_gtdb_data
+from .merge import merge_taxa
+from .ncbi_datasets import get_ncbi_genomes
+from .orient import orient_seqs
+from .parse_silva_taxonomy import (parse_silva_taxonomy, ALLOWED_RANKS,
+                                   DEFAULT_RANKS)
+from .screenseq import cull_seqs
+from .subsample import subsample_fasta
+from .trim_alignment import trim_alignment
 
 citations = Citations.load('citations.bib', package='rescript')
 
@@ -577,8 +580,11 @@ FILTER_OUTPUT_DESCRIPTIONS = {
 
 plugin.methods.register_function(
     function=orient_seqs,
-    inputs={'sequences': FeatureData[Sequence],
-            'reference_sequences': FeatureData[Sequence]},
+    inputs={
+        'sequences': MultiplexedSingleEndBarcodeInSequence,
+        # TODO: add typemap for fasta or fastq
+        'reference_sequences': FeatureData[Sequence]
+    },
     parameters={
         'threads': VSEARCH_PARAMS['threads'],
         'dbmask': VSEARCH_PARAMS['dbmask'],
@@ -590,8 +596,8 @@ plugin.methods.register_function(
         'sizein': VSEARCH_PARAMS['sizein'],
         'sizeout': VSEARCH_PARAMS['sizeout'],
     },
-    outputs=[('oriented_seqs', FeatureData[Sequence]),
-             ('unmatched_seqs', FeatureData[Sequence])],
+    outputs=[('oriented_seqs', MultiplexedSingleEndBarcodeInSequence),
+             ('unmatched_seqs', MultiplexedSingleEndBarcodeInSequence)],
     input_descriptions={
         'sequences': 'Sequences to be oriented.',
         'reference_sequences': ('Reference sequences to orient against. If '
